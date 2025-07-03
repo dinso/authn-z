@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package org.example.multi_tenant_app.grpc.health;
+
+option java_package = "org.example.multi_tenant_app.grpc.health";
+option java_outer_classname = "HealthCheckProto";
+option java_multiple_files = true;
+
+// The health check service definition.
+service HealthCheckService {
+  // Checks the health of the service.
+  rpc Check (HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// The request message for the Check method.
+message HealthCheckRequest {
+  // Optional: service name to check, if the health service supports checking specific sub-services.
+  string service = 1;
+}
+
+// The response message for the Check method.
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+    // SERVICE_UNKNOWN is used when the service name is not known.
+    SERVICE_UNKNOWN = 3;
+  }
+  ServingStatus status = 1;
+}
