@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "permissions", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"name"}) // Permission names are globally unique
+        @UniqueConstraint(columnNames = {"name"}) // Permission names are globally unique
 })
 public class Permission extends PanacheEntityBase {
 

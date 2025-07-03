@@ -25,7 +25,7 @@ public class RolePermissionAssignmentResource {
                                            @PathParam("roleId") UUID roleId,
                                            @PathParam("permissionId") UUID permissionId) {
         try {
-            RolePermissionAssignmentDTO assignment = rolePermissionAssignmentService.assignPermissionToRole(tenantId, roleId, permissionId);
+            RolePermissionAssignmentDTO assignment = rolePermissionAssignmentService.assignPermissionToRole(roleId, permissionId);
             return Response.status(Response.Status.CREATED).entity(assignment).build();
         } catch (NotFoundException e) {
             return Response.status(Response.Status.NOT_FOUND).entity("{\"error\":\"" + e.getMessage() + "\"}").build();
@@ -41,7 +41,7 @@ public class RolePermissionAssignmentResource {
                                              @PathParam("roleId") UUID roleId,
                                              @PathParam("permissionId") UUID permissionId) {
         try {
-            boolean removed = rolePermissionAssignmentService.removePermissionFromRole(tenantId, roleId, permissionId);
+            boolean removed = rolePermissionAssignmentService.removePermissionFromRole(roleId, permissionId);
             if (removed) {
                 return Response.noContent().build();
             } else {
@@ -57,7 +57,7 @@ public class RolePermissionAssignmentResource {
     public Response getPermissionsForRole(@PathParam("tenantId") UUID tenantId,
                                           @PathParam("roleId") UUID roleId) {
         try {
-            List<PermissionDTO> permissions = rolePermissionAssignmentService.getPermissionsForRole(tenantId, roleId);
+            List<PermissionDTO> permissions = rolePermissionAssignmentService.getPermissionsForRole(roleId);
             return Response.ok(permissions).build();
         } catch (NotFoundException e) {
             return Response.status(Response.Status.NOT_FOUND).entity("{\"error\":\"" + e.getMessage() + "\"}").build();

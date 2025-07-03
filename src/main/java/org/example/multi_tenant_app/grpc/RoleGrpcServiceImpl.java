@@ -73,7 +73,7 @@ public class RoleGrpcServiceImpl implements RoleGrpcService {
     @Override
     public Uni<RoleResponse> createRole(CreateRoleRequest request) {
         RoleDTO dtoToCreate = convertCreateRequestToDTO(request);
-        RoleDTO createdRole = roleService.createRole(UUID.fromString(request.getTenantId()), dtoToCreate);
+        RoleDTO createdRole = roleService.createRole(dtoToCreate);
         return Uni.createFrom().item(RoleResponse.newBuilder().setRole(convertRoleDTOToMessage(createdRole)).build());
     }
 
@@ -81,7 +81,7 @@ public class RoleGrpcServiceImpl implements RoleGrpcService {
     public Uni<RoleResponse> getRole(GetRoleRequest request) {
         UUID tenantId = UUID.fromString(request.getTenantId());
         UUID roleId = UUID.fromString(request.getRoleId());
-        return Uni.createFrom().optional(roleService.getRoleById(tenantId, roleId))
+        return Uni.createFrom().optional(roleService.getRoleById(roleId))
                 .map(roleDTO -> RoleResponse.newBuilder().setRole(convertRoleDTOToMessage(roleDTO)).build())
                 .onFailure().transform(err -> new io.grpc.StatusRuntimeException(io.grpc.Status.NOT_FOUND.withDescription(err.getMessage())));
     }
@@ -89,10 +89,10 @@ public class RoleGrpcServiceImpl implements RoleGrpcService {
     @Override
     public Uni<RoleListResponse> getRolesForTenant(GetRolesForTenantRequest request) {
         UUID tenantId = UUID.fromString(request.getTenantId());
-        List<RoleDTO> dtoList = roleService.getRolesByTenant(tenantId);
+        List<RoleDTO> dtoList = roleService.getRolesByTenant();
         List<RoleMessage> messages = dtoList.stream()
-                                            .map(this::convertRoleDTOToMessage)
-                                            .collect(Collectors.toList());
+                .map(this::convertRoleDTOToMessage)
+                .collect(Collectors.toList());
         return Uni.createFrom().item(RoleListResponse.newBuilder().addAllRoles(messages).build());
     }
 
@@ -102,7 +102,7 @@ public class RoleGrpcServiceImpl implements RoleGrpcService {
         UUID roleId = UUID.fromString(request.getRoleId());
         RoleDTO dtoToUpdate = convertUpdateRequestToDTO(request);
 
-        return Uni.createFrom().optional(roleService.updateRole(tenantId, roleId, dtoToUpdate))
+        return Uni.createFrom().optional(roleService.updateRole(roleId, dtoToUpdate))
                 .map(updatedRoleDTO -> RoleResponse.newBuilder().setRole(convertRoleDTOToMessage(updatedRoleDTO)).build())
                 .onFailure().transform(err -> new io.grpc.StatusRuntimeException(io.grpc.Status.NOT_FOUND.withDescription(err.getMessage())));
     }
@@ -111,7 +111,7 @@ public class RoleGrpcServiceImpl implements RoleGrpcService {
     public Uni<Empty> deleteRole(DeleteRoleRequest request) {
         UUID tenantId = UUID.fromString(request.getTenantId());
         UUID roleId = UUID.fromString(request.getRoleId());
-        boolean deleted = roleService.deleteRole(tenantId, roleId);
+        boolean deleted = roleService.deleteRole(roleId);
         if (deleted) {
             return Uni.createFrom().item(Empty.newBuilder().build());
         } else {

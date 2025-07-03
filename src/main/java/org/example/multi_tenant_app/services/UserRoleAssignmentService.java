@@ -2,13 +2,16 @@ package org.example.multi_tenant_app.services;
 
 import io.quarkus.hibernate.orm.panache.Panache;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 import org.example.multi_tenant_app.data.entities.Role;
 import org.example.multi_tenant_app.data.entities.UserAccount;
 import org.example.multi_tenant_app.data.entities.UserRoleAssignment;
+import org.example.multi_tenant_app.security.TenantContext;
 import org.example.multi_tenant_app.web.dtos.RoleDTO;
 import org.example.multi_tenant_app.web.dtos.UserRoleAssignmentDTO;
+import org.hibernate.Filter;
 import org.hibernate.Session;
 
 import java.util.List;
@@ -25,12 +28,16 @@ public class UserRoleAssignmentService {
     // @Inject
     // RoleService roleService;
 
-    private void enableTenantFilter(UUID tenantId) {
+    @Inject
+    TenantContext tenantContext;
+
+    private void enableTenantFilter() {
+        UUID currentTenantId = tenantContext.getRequiredTenantId();
         Session session = Panache.getEntityManager().unwrap(Session.class);
         // Only enable if not already enabled or if tenantId changed
-        if (session.getEnabledFilter("tenantFilter") == null ||
-            !session.getEnabledFilter("tenantFilter").getParameterValue("tenantId").equals(tenantId)) {
-            session.enableFilter("tenantFilter").setParameter("tenantId", tenantId);
+        Filter enabledFilter = session.getEnabledFilter("tenantFilter");
+        if (enabledFilter == null || !enabledFilter.getParameterValue("tenantId").equals(currentTenantId)) {
+            session.enableFilter("tenantFilter").setParameter("tenantId", currentTenantId);
         }
     }
 
@@ -46,60 +53,61 @@ public class UserRoleAssignmentService {
     }
 
     @Transactional
-    public UserRoleAssignmentDTO assignRoleToUser(UUID tenantId, UUID userId, UUID roleId) {
-        enableTenantFilter(tenantId); // Enable filter for subsequent checks if any
+    public UserRoleAssignmentDTO assignRoleToUser(UUID userId, UUID roleId) { // tenantId parameter removed
+        UUID currentTenantId = tenantContext.getRequiredTenantId();
+        enableTenantFilter(); // Enable filter for subsequent checks
 
-        // 1. Validate tenantId consistency (path vs. potential DTO, though not used directly here)
-        // 2. Verify UserAccount exists and belongs to the tenant
-        UserAccount user = UserAccount.<UserAccount>find("id = ?1 and tenantId = ?2", userId, tenantId).firstResult();
-        if (user == null) {
+        // 1. Verify UserAccount exists and belongs to the current tenant
+        // The enabled filter will apply to these Panache operations.
+        UserAccount user = UserAccount.findById(userId);
+        if (user == null) { // Filter would make it null if not in current tenant
             throw new NotFoundException("UserAccount not found in this tenant.");
         }
 
-        // 3. Verify Role exists and belongs to the tenant
-        Role role = Role.<Role>find("id = ?1 and tenantId = ?2", roleId, tenantId).firstResult();
-        if (role == null) {
+        // 2. Verify Role exists and belongs to the current tenant
+        Role role = Role.findById(roleId);
+        if (role == null) { // Filter would make it null if not in current tenant
             throw new NotFoundException("Role not found in this tenant.");
         }
 
-        // 4. Check if assignment already exists
-        long existingAssignments = UserRoleAssignment.count("tenantId = ?1 and userAccountId = ?2 and roleId = ?3", tenantId, userId, roleId);
-        if (existingAssignments > 0) {
-            // Or return existing, or throw a conflict exception
-            // For now, let's assume we just don't create a duplicate
-             UserRoleAssignment existing = UserRoleAssignment.<UserRoleAssignment>find("tenantId = ?1 and userAccountId = ?2 and roleId = ?3", tenantId, userId, roleId).firstResult();
-            return convertToDTO(existing);
+        // 3. Check if assignment already exists (Filter applies to UserRoleAssignment as well)
+        UserRoleAssignment existingAssignment = UserRoleAssignment
+                .<UserRoleAssignment>find("userAccountId = ?1 and roleId = ?2", userId, roleId)
+                .firstResult(); // Filter ensures it's for the current tenant
+
+        if (existingAssignment != null) {
+            return convertToDTO(existingAssignment);
         }
 
-        UserRoleAssignment newAssignment = new UserRoleAssignment(tenantId, userId, roleId);
+        UserRoleAssignment newAssignment = new UserRoleAssignment(currentTenantId, userId, roleId);
         newAssignment.persist();
         return convertToDTO(newAssignment);
     }
 
     @Transactional
-    public boolean removeRoleFromUser(UUID tenantId, UUID userId, UUID roleId) {
-        enableTenantFilter(tenantId);
+    public boolean removeRoleFromUser(UUID userId, UUID roleId) { // tenantId parameter removed
+        UUID currentTenantId = tenantContext.getRequiredTenantId();
+        enableTenantFilter();
 
-        // Optional: Validate user and role existence first, similar to assignRoleToUser
-        // UserAccount user = UserAccount.<UserAccount>find("id = ?1 and tenantId = ?2", userId, tenantId).firstResult();
-        // if (user == null) throw new NotFoundException("User not found");
-        // Role role = Role.<Role>find("id = ?1 and tenantId = ?2", roleId, tenantId).firstResult();
-        // if (role == null) throw new NotFoundException("Role not found");
-
-        long deletedCount = UserRoleAssignment.delete("tenantId = ?1 and userAccountId = ?2 and roleId = ?3", tenantId, userId, roleId);
+        // The delete operation will also be subject to the tenant filter if it's on UserRoleAssignment
+        // and if the query implicitly involves tenantId or if Panache applies it broadly.
+        // Explicitly adding tenantId to delete query for safety.
+        long deletedCount = UserRoleAssignment.delete("tenantId = ?1 and userAccountId = ?2 and roleId = ?3", currentTenantId, userId, roleId);
         return deletedCount > 0;
     }
 
-    public List<RoleDTO> getRolesForUser(UUID tenantId, UUID userId) {
-        enableTenantFilter(tenantId);
+    public List<RoleDTO> getRolesForUser(UUID userId) { // tenantId parameter removed
+        UUID currentTenantId = tenantContext.getRequiredTenantId();
+        enableTenantFilter();
 
-        // Verify UserAccount exists and belongs to the tenant
-        UserAccount user = UserAccount.<UserAccount>find("id = ?1 and tenantId = ?2", userId, tenantId).firstResult();
+        // Verify UserAccount exists (filter will ensure it's for the current tenant)
+        UserAccount user = UserAccount.findById(userId);
         if (user == null) {
             throw new NotFoundException("UserAccount not found in this tenant.");
         }
 
-        List<UserRoleAssignment> assignments = UserRoleAssignment.list("tenantId = ?1 and userAccountId = ?2", tenantId, userId);
+        // Filter will apply to this list operation on UserRoleAssignment
+        List<UserRoleAssignment> assignments = UserRoleAssignment.list("userAccountId = ?1", userId);
 
         List<UUID> roleIds = assignments.stream().map(ura -> ura.roleId).collect(Collectors.toList());
 
@@ -107,21 +115,19 @@ public class UserRoleAssignmentService {
             return List.of();
         }
 
-        // Note: The tenant filter is already enabled. If RoleService also enables it, it's fine.
-        // This assumes RoleService's listByIds or similar method respects the filter or internally filters by tenant.
-        // For simplicity, directly querying Role here.
-        return Role.<Role>list("id in ?1 and tenantId = ?2", roleIds, tenantId).stream()
-            .map(role -> {
-                RoleDTO dto = new RoleDTO();
-                dto.setId(role.id);
-                dto.setTenantId(role.tenantId);
-                dto.setName(role.name);
-                dto.setDescription(role.description);
-                dto.setSystemRole(role.isSystemRole);
-                dto.setCreatedAt(role.createdAt);
-                dto.setUpdatedAt(role.updatedAt);
-                return dto;
-            })
-            .collect(Collectors.toList());
+        // Filter is already enabled and will apply to this Role query
+        return Role.<Role>list("id in ?1", roleIds).stream()
+                .map(role -> {
+                    RoleDTO dto = new RoleDTO();
+                    dto.setId(role.id);
+                    dto.setTenantId(role.tenantId);
+                    dto.setName(role.name);
+                    dto.setDescription(role.description);
+                    dto.setSystemRole(role.isSystemRole);
+                    dto.setCreatedAt(role.createdAt);
+                    dto.setUpdatedAt(role.updatedAt);
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 }

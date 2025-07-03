@@ -73,7 +73,7 @@ public class UserRoleAssignmentGrpcServiceImpl implements UserRoleAssignmentGrpc
         UUID roleId = UUID.fromString(request.getRoleId());
 
         try {
-            UserRoleAssignmentDTO assignmentDTO = userRoleAssignmentService.assignRoleToUser(tenantId, userId, roleId);
+            UserRoleAssignmentDTO assignmentDTO = userRoleAssignmentService.assignRoleToUser(userId, roleId);
             return Uni.createFrom().item(UserRoleAssignmentResponse.newBuilder()
                     .setAssignment(convertAssignmentDTOToMessage(assignmentDTO))
                     .build());
@@ -91,7 +91,7 @@ public class UserRoleAssignmentGrpcServiceImpl implements UserRoleAssignmentGrpc
         UUID roleId = UUID.fromString(request.getRoleId());
 
         try {
-            boolean removed = userRoleAssignmentService.removeRoleFromUser(tenantId, userId, roleId);
+            boolean removed = userRoleAssignmentService.removeRoleFromUser(userId, roleId);
             if (removed) {
                 return Uni.createFrom().item(Empty.newBuilder().build());
             } else {
@@ -108,7 +108,7 @@ public class UserRoleAssignmentGrpcServiceImpl implements UserRoleAssignmentGrpc
         UUID userId = UUID.fromString(request.getUserAccountId());
 
         try {
-            List<RoleDTO> roleDTOs = userRoleAssignmentService.getRolesForUser(tenantId, userId);
+            List<RoleDTO> roleDTOs = userRoleAssignmentService.getRolesForUser(userId);
             List<RoleMessage> roleMessages = roleDTOs.stream()
                     .map(this::convertRoleDTOToRoleMessage)
                     .collect(Collectors.toList());

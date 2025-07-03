@@ -30,7 +30,7 @@ public class UserRoleAssignmentResource {
                                      @PathParam("userId") UUID userId,
                                      @PathParam("roleId") UUID roleId) {
         try {
-            UserRoleAssignmentDTO assignment = userRoleAssignmentService.assignRoleToUser(tenantId, userId, roleId);
+            UserRoleAssignmentDTO assignment = userRoleAssignmentService.assignRoleToUser(userId, roleId);
             // Consider what to return: the assignment, 201 Created, or 204 No Content if idempotent.
             // Returning the assignment details can be useful.
             return Response.status(Response.Status.CREATED).entity(assignment).build();
@@ -47,7 +47,7 @@ public class UserRoleAssignmentResource {
                                        @PathParam("userId") UUID userId,
                                        @PathParam("roleId") UUID roleId) {
         try {
-            boolean removed = userRoleAssignmentService.removeRoleFromUser(tenantId, userId, roleId);
+            boolean removed = userRoleAssignmentService.removeRoleFromUser(userId, roleId);
             if (removed) {
                 return Response.noContent().build();
             } else {
@@ -64,7 +64,7 @@ public class UserRoleAssignmentResource {
     public Response getRolesForUser(@PathParam("tenantId") UUID tenantId,
                                     @PathParam("userId") UUID userId) {
         try {
-            List<RoleDTO> roles = userRoleAssignmentService.getRolesForUser(tenantId, userId);
+            List<RoleDTO> roles = userRoleAssignmentService.getRolesForUser(userId);
             return Response.ok(roles).build();
         } catch (NotFoundException e) {
             return Response.status(Response.Status.NOT_FOUND).entity("{\"error\":\"" + e.getMessage() + "\"}").build();

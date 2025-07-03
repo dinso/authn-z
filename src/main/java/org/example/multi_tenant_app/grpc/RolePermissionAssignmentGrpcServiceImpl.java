@@ -5,10 +5,12 @@ import com.google.protobuf.Timestamp;
 import io.quarkus.grpc.GrpcService;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
+
 import org.example.multi_tenant_app.grpc.role_permission.*;
 import org.example.multi_tenant_app.services.RolePermissionAssignmentService;
 import org.example.multi_tenant_app.web.dtos.PermissionDTO;
 import org.example.multi_tenant_app.web.dtos.RolePermissionAssignmentDTO;
+
 
 import java.time.ZoneOffset;
 import java.util.List;
@@ -66,7 +68,7 @@ public class RolePermissionAssignmentGrpcServiceImpl implements RolePermissionAs
         UUID roleId = UUID.fromString(request.getRoleId());
         UUID permissionId = UUID.fromString(request.getPermissionId());
         try {
-            RolePermissionAssignmentDTO dto = service.assignPermissionToRole(tenantId, roleId, permissionId);
+            RolePermissionAssignmentDTO dto = service.assignPermissionToRole(roleId, permissionId);
             return Uni.createFrom().item(RolePermissionAssignmentResponse.newBuilder()
                     .setAssignment(convertAssignmentDTOToMessage(dto))
                     .build());
@@ -83,7 +85,7 @@ public class RolePermissionAssignmentGrpcServiceImpl implements RolePermissionAs
         UUID roleId = UUID.fromString(request.getRoleId());
         UUID permissionId = UUID.fromString(request.getPermissionId());
         try {
-            boolean removed = service.removePermissionFromRole(tenantId, roleId, permissionId);
+            boolean removed = service.removePermissionFromRole(roleId, permissionId);
             if (removed) {
                 return Uni.createFrom().item(Empty.newBuilder().build());
             } else {
@@ -99,7 +101,7 @@ public class RolePermissionAssignmentGrpcServiceImpl implements RolePermissionAs
         UUID tenantId = UUID.fromString(request.getTenantId());
         UUID roleId = UUID.fromString(request.getRoleId());
         try {
-            List<PermissionDTO> dtoList = service.getPermissionsForRole(tenantId, roleId);
+            List<PermissionDTO> dtoList = service.getPermissionsForRole(roleId);
             List<PermissionInfoMessage> messages = dtoList.stream()
                     .map(this::convertPermissionDTOToInfoMessage)
                     .collect(Collectors.toList());
@@ -118,7 +120,7 @@ public class RolePermissionAssignmentGrpcServiceImpl implements RolePermissionAs
                     .collect(Collectors.toList());
             return Uni.createFrom().item(PermissionListResponse.newBuilder().addAllPermissions(messages).build());
         } catch (Exception e) {
-             return Uni.createFrom().failure(new io.grpc.StatusRuntimeException(io.grpc.Status.INTERNAL.withDescription("Failed to retrieve global permissions: " + e.getMessage())));
+            return Uni.createFrom().failure(new io.grpc.StatusRuntimeException(io.grpc.Status.INTERNAL.withDescription("Failed to retrieve global permissions: " + e.getMessage())));
         }
     }
 }

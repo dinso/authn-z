@@ -2,9 +2,12 @@ package org.example.multi_tenant_app.services;
 
 import io.quarkus.hibernate.orm.panache.Panache;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.example.multi_tenant_app.data.entities.Role;
+import org.example.multi_tenant_app.security.TenantContext;
 import org.example.multi_tenant_app.web.dtos.RoleDTO;
+import org.hibernate.Filter;
 import org.hibernate.Session;
 
 import java.time.LocalDateTime;
@@ -16,14 +19,17 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class RoleService {
 
-    // --- Utility method to enable tenant filter ---
-    // This should ideally be handled more globally, e.g., via a CDI interceptor or a base repository/service class.
-    // For now, it's explicitly called in each relevant public method.
-    private void enableTenantFilter(UUID tenantId) {
+    @Inject
+    TenantContext tenantContext;
+
+    // --- Utility method to enable tenant filter using TenantContext ---
+    private void enableTenantFilter() {
+        UUID currentTenantId = tenantContext.getRequiredTenantId(); // Throws if not set
         Session session = Panache.getEntityManager().unwrap(Session.class);
-        if (session.getEnabledFilter("tenantFilter") == null ||
-            !session.getEnabledFilter("tenantFilter").getParameterValue("tenantId").equals(tenantId)) {
-            session.enableFilter("tenantFilter").setParameter("tenantId", tenantId);
+        // Check if filter is already enabled with the same parameter to avoid re-setting if not necessary
+        Filter enabledFilter = session.getEnabledFilter("tenantFilter");
+        if (enabledFilter == null || !enabledFilter.getParameterValue("tenantId").equals(currentTenantId)) {
+            session.enableFilter("tenantFilter").setParameter("tenantId", currentTenantId);
         }
     }
 
@@ -41,20 +47,20 @@ public class RoleService {
     }
 
     @Transactional
-    public RoleDTO createRole(UUID tenantId, RoleDTO roleDTO) {
-        enableTenantFilter(tenantId); // Ensure operations are within tenant context for safety, though creation is direct.
+    public RoleDTO createRole(RoleDTO roleDTO) { // tenantId parameter removed, will get from context
+        UUID currentTenantId = tenantContext.getRequiredTenantId();
+        // enableTenantFilter(); // Not strictly needed before persist if tenantId is set directly on entity from context
 
-        if (!tenantId.equals(roleDTO.getTenantId())) {
-            // Or throw an exception if tenantId in DTO is not allowed or conflicts path {tenantId}
-            // For creation, we typically trust the path {tenantId} and set it.
-            roleDTO.setTenantId(tenantId);
+        // Validate or set tenantId from context if DTO allows it, or if it's part of validation logic
+        if (roleDTO.getTenantId() != null && !roleDTO.getTenantId().equals(currentTenantId)) {
+            throw new SecurityException("Tenant ID in DTO does not match current tenant context.");
         }
 
         Role role = new Role();
-        role.tenantId = tenantId;
+        role.tenantId = currentTenantId; // Set tenantId from context
         role.name = roleDTO.getName();
         role.description = roleDTO.getDescription();
-        role.isSystemRole = roleDTO.isSystemRole(); // Typically false for tenant-created roles
+        role.isSystemRole = roleDTO.isSystemRole();
         role.createdAt = LocalDateTime.now();
         role.updatedAt = LocalDateTime.now();
 
@@ -62,24 +68,31 @@ public class RoleService {
         return convertToDTO(role);
     }
 
-    public Optional<RoleDTO> getRoleById(UUID tenantId, UUID roleId) {
-        enableTenantFilter(tenantId);
+    public Optional<RoleDTO> getRoleById(UUID roleId) { // tenantId parameter removed
+        enableTenantFilter(); // Uses tenantId from context
+        // findByIdOptional will be affected by the enabled tenant filter
         return Role.<Role>findByIdOptional(roleId).map(this::convertToDTO);
     }
 
-    public List<RoleDTO> getRolesByTenant(UUID tenantId) {
-        enableTenantFilter(tenantId);
-        // The filter should ensure only roles for the given tenantId are returned.
-        // If not using filter for list(), then: List<Role> roles = Role.list("tenantId", tenantId);
+    public List<RoleDTO> getRolesByTenant() { // tenantId parameter removed
+        enableTenantFilter(); // Uses tenantId from context
+        // listAll will be affected by the enabled tenant filter
         return Role.<Role>listAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public Optional<RoleDTO> updateRole(UUID tenantId, UUID roleId, RoleDTO roleDTO) {
-        enableTenantFilter(tenantId);
-        Optional<Role> existingRoleOpt = Role.findByIdOptional(roleId);
+    public Optional<RoleDTO> updateRole(UUID roleId, RoleDTO roleDTO) { // tenantId parameter removed
+        UUID currentTenantId = tenantContext.getRequiredTenantId();
+        enableTenantFilter(); // Uses tenantId from context
+
+        // Validate tenantId in DTO if present
+        if (roleDTO.getTenantId() != null && !roleDTO.getTenantId().equals(currentTenantId)) {
+            throw new SecurityException("Tenant ID in DTO does not match current tenant context for update.");
+        }
+
+        Optional<Role> existingRoleOpt = Role.findByIdOptional(roleId); // Filter ensures it's from the current tenant
         if (existingRoleOpt.isEmpty()) {
             return Optional.empty();
         }
@@ -100,9 +113,9 @@ public class RoleService {
     }
 
     @Transactional
-    public boolean deleteRole(UUID tenantId, UUID roleId) {
-        enableTenantFilter(tenantId);
-        Optional<Role> roleOpt = Role.findByIdOptional(roleId);
+    public boolean deleteRole(UUID roleId) { // tenantId parameter removed
+        enableTenantFilter(); // Uses tenantId from context
+        Optional<Role> roleOpt = Role.findByIdOptional(roleId); // Filter ensures it's from the current tenant
         if (roleOpt.isPresent()) {
             if (roleOpt.get().isSystemRole) {
                 // Prevent deletion of system roles or throw specific exception
