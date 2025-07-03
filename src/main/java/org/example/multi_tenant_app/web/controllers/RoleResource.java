@@ -1,14 +1,13 @@
 package org.example.multi_tenant_app.web.controllers;
 
-import org.example.multi_tenant_app.services.RoleService;
-import org.example.multi_tenant_app.web.dtos.RoleDTO;
-
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
+import org.example.multi_tenant_app.services.RoleService;
+import org.example.multi_tenant_app.web.dtos.RoleDTO;
 
 import java.util.List;
 import java.util.UUID;

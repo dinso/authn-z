@@ -1,15 +1,12 @@
 package org.example.multi_tenant_app.web.controllers;
 
-import org.example.multi_tenant_app.services.UserRoleAssignmentService;
-import org.example.multi_tenant_app.web.dtos.RoleDTO; // To list roles for a user
-import org.example.multi_tenant_app.web.dtos.UserRoleAssignmentDTO; // For the assignment operation
-
 import jakarta.inject.Inject;
-import jakarta.validation.Valid; // For validating request body if we had one (not for simple ID assignment)
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriBuilder;
+import org.example.multi_tenant_app.services.UserRoleAssignmentService;
+import org.example.multi_tenant_app.web.dtos.RoleDTO;
+import org.example.multi_tenant_app.web.dtos.UserRoleAssignmentDTO;
 
 import java.util.List;
 import java.util.UUID;

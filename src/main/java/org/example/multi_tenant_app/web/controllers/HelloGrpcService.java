@@ -1,7 +1,6 @@
 package org.example.multi_tenant_app.web.controllers;
 
 import io.quarkus.grpc.GrpcService;
-
 import io.smallrye.mutiny.Uni;
 
 @GrpcService

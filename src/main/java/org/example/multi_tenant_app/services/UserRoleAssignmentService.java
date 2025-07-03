@@ -1,19 +1,16 @@
 package org.example.multi_tenant_app.services;
 
-import org.example.multi_tenant_app.data.entities.UserAccount;
-import org.example.multi_tenant_app.data.entities.Role;
-import org.example.multi_tenant_app.data.entities.UserRoleAssignment;
-import org.example.multi_tenant_app.web.dtos.UserRoleAssignmentDTO; // To be created
-
+import io.quarkus.hibernate.orm.panache.Panache;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-import jakarta.inject.Inject;
-
+import org.example.multi_tenant_app.data.entities.Role;
+import org.example.multi_tenant_app.data.entities.UserAccount;
+import org.example.multi_tenant_app.data.entities.UserRoleAssignment;
+import org.example.multi_tenant_app.web.dtos.RoleDTO;
+import org.example.multi_tenant_app.web.dtos.UserRoleAssignmentDTO;
 import org.hibernate.Session;
-import io.quarkus.hibernate.orm.panache.Panache;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,7 +29,7 @@ public class UserRoleAssignmentService {
         Session session = Panache.getEntityManager().unwrap(Session.class);
         // Only enable if not already enabled or if tenantId changed
         if (session.getEnabledFilter("tenantFilter") == null ||
-            !session.getEnabledFilter("tenantFilter").getParameter("tenantId").equals(tenantId)) {
+            !session.getEnabledFilter("tenantFilter").getParameterValue("tenantId").equals(tenantId)) {
             session.enableFilter("tenantFilter").setParameter("tenantId", tenantId);
         }
     }

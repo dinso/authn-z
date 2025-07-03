@@ -1,14 +1,11 @@
 package org.example.multi_tenant_app.services;
 
-import org.example.multi_tenant_app.data.entities.Role;
-import org.example.multi_tenant_app.web.dtos.RoleDTO; // Will create this DTO later
-
+import io.quarkus.hibernate.orm.panache.Panache;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.NotFoundException;
-
+import org.example.multi_tenant_app.data.entities.Role;
+import org.example.multi_tenant_app.web.dtos.RoleDTO;
 import org.hibernate.Session;
-import io.quarkus.hibernate.orm.panache.Panache;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +22,7 @@ public class RoleService {
     private void enableTenantFilter(UUID tenantId) {
         Session session = Panache.getEntityManager().unwrap(Session.class);
         if (session.getEnabledFilter("tenantFilter") == null ||
-            !session.getEnabledFilter("tenantFilter").getParameter("tenantId").equals(tenantId)) {
+            !session.getEnabledFilter("tenantFilter").getParameterValue("tenantId").equals(tenantId)) {
             session.enableFilter("tenantFilter").setParameter("tenantId", tenantId);
         }
     }

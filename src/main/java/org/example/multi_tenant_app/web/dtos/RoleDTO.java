@@ -1,13 +1,11 @@
 package org.example.multi_tenant_app.web.dtos;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
-// Using Jakarta Bean Validation API for input validation (optional, but good practice)
-// Add quarkus-hibernate-validator if not already present for this to work
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 
 public class RoleDTO {

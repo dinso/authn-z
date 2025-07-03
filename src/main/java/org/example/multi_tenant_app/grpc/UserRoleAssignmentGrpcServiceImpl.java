@@ -5,8 +5,7 @@ import com.google.protobuf.Timestamp;
 import io.quarkus.grpc.GrpcService;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
-
-import org.example.multi_tenant_app.grpc.role.RoleMessage; // Reusing from role service proto
+import org.example.multi_tenant_app.grpc.role.RoleMessage;
 import org.example.multi_tenant_app.grpc.user_role.*;
 import org.example.multi_tenant_app.services.UserRoleAssignmentService;
 import org.example.multi_tenant_app.web.dtos.RoleDTO;

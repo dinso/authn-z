@@ -1,13 +1,12 @@
 package org.example.multi_tenant_app.web.controllers;
 
-import org.example.multi_tenant_app.services.RolePermissionAssignmentService;
-import org.example.multi_tenant_app.web.dtos.PermissionDTO; // To list permissions for a role
-import org.example.multi_tenant_app.web.dtos.RolePermissionAssignmentDTO; // For the assignment operation
-
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.example.multi_tenant_app.services.RolePermissionAssignmentService;
+import org.example.multi_tenant_app.web.dtos.PermissionDTO;
+import org.example.multi_tenant_app.web.dtos.RolePermissionAssignmentDTO;
 
 import java.util.List;
 import java.util.UUID;

@@ -2,7 +2,6 @@ package org.example.multi_tenant_app.grpc;
 
 import io.quarkus.grpc.GrpcService;
 import io.smallrye.mutiny.Uni;
-
 import org.example.multi_tenant_app.grpc.health.HealthCheckRequest;
 import org.example.multi_tenant_app.grpc.health.HealthCheckResponse;
 import org.example.multi_tenant_app.grpc.health.HealthCheckService;

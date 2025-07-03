@@ -7,9 +7,8 @@ import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import org.example.multi_tenant_app.grpc.role.*;
 import org.example.multi_tenant_app.services.RoleService;
-import org.example.multi_tenant_app.web.dtos.RoleDTO; // Using the same DTO as REST
+import org.example.multi_tenant_app.web.dtos.RoleDTO;
 
-import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
