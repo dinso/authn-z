@@ -25,7 +25,6 @@ quarkus:
     application-type: service
     # Token:
     #   principal-claim: preferred_username # or sub, email etc.
-
 # --- DEV Profile ---
 "%dev":
   quarkus:
