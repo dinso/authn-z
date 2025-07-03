@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package org.example.multi_tenant_app.grpc;
+
+option java_multiple_files = true;
+option java_package = "org.example.multi_tenant_app.grpc.tenant"; // Specific package for tenant service protos
+option java_outer_classname = "TenantServiceProto";
+
+import "google/protobuf/empty.proto"; // For empty request/response
+
+// Tenant message definition
+message Tenant {
+    string id = 1; // UUID as string
+    string name = 2;
+    string status = 3;
+    string created_at = 4; // ISO 8601 string
+    string updated_at = 5; // ISO 8601 string
+}
+
+// Request to get a tenant by ID
+message GetTenantRequest {
+    string id = 1; // UUID as string
+}
+
+// Request to create a new tenant
+message CreateTenantRequest {
+    string name = 1;
+    string status = 2; // e.g., ACTIVE, INACTIVE
+}
+
+// Response for creating a tenant (could be the tenant itself or just an ID)
+message CreateTenantResponse {
+    Tenant tenant = 1;
+}
+
+// Request to update an existing tenant
+message UpdateTenantRequest {
+    string id = 1;
+    string name = 2;
+    string status = 3;
+}
+
+// Response for updating a tenant
+message UpdateTenantResponse {
+    Tenant tenant = 1;
+}
+
+// Request to delete a tenant
+message DeleteTenantRequest {
+    string id = 1;
+}
+
+// Request to list all tenants (could include pagination in a real app)
+message ListTenantsRequest {
+    // google.protobuf.Empty empty = 1; // Or add pagination fields
+}
+
+// Response for listing tenants
+message ListTenantsResponse {
+    repeated Tenant tenants = 1;
+}
+
+
+// The Tenant service definition.
+service TenantService {
+    // Creates a new tenant
+    rpc CreateTenant (CreateTenantRequest) returns (CreateTenantResponse);
+    // Retrieves a tenant by its ID
+    rpc GetTenant (GetTenantRequest) returns (Tenant);
+    // Lists all tenants
+    rpc ListTenants (ListTenantsRequest) returns (ListTenantsResponse);
+    // Updates an existing tenant
+    rpc UpdateTenant (UpdateTenantRequest) returns (UpdateTenantResponse);
+    // Deletes a tenant by its ID
+    rpc DeleteTenant (DeleteTenantRequest) returns (google.protobuf.Empty);
+}

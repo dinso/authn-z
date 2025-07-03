@@ -94,6 +94,10 @@
       <artifactId>quarkus-rest</artifactId>
       <version>${quarkus.platform.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-openapi</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
