@@ -19,12 +19,13 @@ public class TenantIdFilter implements ContainerRequestFilter {
     TenantContext tenantContext;
 
     @Inject
-    SecurityIdentity securityIdentity; // Injected to access authenticated user details, including JWT
+    SecurityIdentity securityIdentity; // Injected to access authenticated user details
 
-    // Using JsonWebToken directly if preferred for more direct claim access,
-    // but SecurityIdentity is more idiomatic for Quarkus general security info.
-    @Inject
-    JsonWebToken jwtPrincipal; // Can be null if request is not authenticated with JWT
+    // JsonWebToken jwtPrincipal might not be correctly initialized or might be a
+    // simple principal when OIDC is disabled and @TestSecurity is used.
+    // It's safer to get it from SecurityIdentity and check its type.
+    // @Inject
+    // JsonWebToken jwtPrincipal;
 
     private static final String TENANT_ID_HEADER = "X-Tenant-ID";
     private static final String TENANT_ID_JWT_CLAIM = "tenant_id"; // Common claim name, adjust if different
@@ -33,20 +34,23 @@ public class TenantIdFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) throws IOException {
         UUID tenantId = null;
 
-        // 1. Try to extract from JWT if user is authenticated and JWT is present
-        if (jwtPrincipal != null && jwtPrincipal.containsClaim(TENANT_ID_JWT_CLAIM)) {
-            try {
-                String tenantIdStr = jwtPrincipal.getClaim(TENANT_ID_JWT_CLAIM);
-                if (tenantIdStr != null && !tenantIdStr.isBlank()) {
-                    tenantId = UUID.fromString(tenantIdStr);
+        // 1. Try to extract from JWT if user is authenticated and the principal is a JsonWebToken
+        if (securityIdentity != null && securityIdentity.getPrincipal() instanceof JsonWebToken) {
+            JsonWebToken actualJwt = (JsonWebToken) securityIdentity.getPrincipal();
+            if (actualJwt.containsClaim(TENANT_ID_JWT_CLAIM)) {
+                try {
+                    String tenantIdStr = actualJwt.getClaim(TENANT_ID_JWT_CLAIM);
+                    if (tenantIdStr != null && !tenantIdStr.isBlank()) {
+                        tenantId = UUID.fromString(tenantIdStr);
+                    }
+                } catch (Exception e) {
+                    // Log error: failed to parse tenant_id claim from JWT
+                    System.err.println("Error parsing tenant_id claim from JWT: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                // Log error: failed to parse tenant_id claim from JWT
-                System.err.println("Error parsing tenant_id claim from JWT: " + e.getMessage());
             }
         }
 
-        // 2. If not found in JWT, try X-Tenant-ID header (e.g., for MCP or service-to-service)
+        // 2. If not found in JWT (or if principal wasn't a JWT), try X-Tenant-ID header
         // This could be conditional based on path, e.g. if requestContext.getUriInfo().getPath().startsWith("/mcp")
         if (tenantId == null) {
             String tenantIdHeaderValue = requestContext.getHeaderString(TENANT_ID_HEADER);

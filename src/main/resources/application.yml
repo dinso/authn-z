@@ -31,7 +31,8 @@ quarkus:
     log:
       level: INFO
       category:
-        "org.example.multi_tenant_app": DEBUG
+        "org.example.multi_tenant_app":
+          level: DEBUG
     datasource:
       username: dev_user
       password: dev_password
@@ -119,3 +120,34 @@ quarkus:
 # Common application greeting (example)
 greeting:
   message: "hello from multi-tenant-app"
+
+# --- TEST Profile ---
+"%test":
+  quarkus:
+    log:
+      level: INFO # Or DEBUG for more verbose test logging
+      category:
+        "org.example.multi_tenant_app":
+          level: DEBUG
+    # Datasource configuration for tests - Use H2 in-memory
+    datasource:
+      db-kind: h2
+      devservices:
+        enabled: false # Disable DevServices for the default datasource
+      jdbc:
+        url: jdbc:h2:mem:test_db;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
+      username: sa
+      password: sa
+    flyway:
+      migrate-at-start: true # Ensure Flyway runs for H2
+      locations: classpath:db/migration,classpath:db/test # Include test-specific migrations if any
+    # Kafka DevServices - disable for tests if Docker is not reliably available
+    kafka:
+      devservices:
+        enabled: false
+    # OIDC settings for tests (if needed, can be simplified or use mock tokens)
+    oidc:
+      enabled: false # Disable OIDC for most unit/integration tests unless specifically testing OIDC
+      # auth-server-url: mock # Or point to a test-specific OIDC server if needed
+      # client-id: test_client
+      # application-type: service

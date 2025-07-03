@@ -8,25 +8,27 @@ public class ServiceException extends RuntimeException {
     private final Response.Status httpStatus;
     private final String details;
 
+    // 2-argument constructor
     public ServiceException(ErrorCode errorCode, Response.Status httpStatus) {
-        this(errorCode, httpStatus, errorCode.getDefaultMessage(), null);
+        this(errorCode, httpStatus, errorCode.getDefaultMessage()); // Calls 3-arg
     }
 
+    // 3-argument constructor
     public ServiceException(ErrorCode errorCode, Response.Status httpStatus, String message) {
-        this(errorCode, httpStatus, message, null);
+        this(errorCode, httpStatus, message, (String) null); // Calls 4-arg (details)
     }
 
+    // 4-argument constructor (with details)
     public ServiceException(ErrorCode errorCode, Response.Status httpStatus, String message, String details) {
-        super(message);
-        this.errorCode = errorCode;
-        this.httpStatus = httpStatus;
-        this.details = details;
+        this(errorCode, httpStatus, message, details, null); // Calls 5-arg (cause = null)
     }
 
+    // 4-argument constructor (with cause) - Restored
     public ServiceException(ErrorCode errorCode, Response.Status httpStatus, String message, Throwable cause) {
-        this(errorCode, httpStatus, message, null, cause);
+        this(errorCode, httpStatus, message, null, cause); // Calls 5-arg (details = null)
     }
 
+    // 5-argument constructor (Primary)
     public ServiceException(ErrorCode errorCode, Response.Status httpStatus, String message, String details, Throwable cause) {
         super(message, cause);
         this.errorCode = errorCode;
