@@ -86,8 +86,9 @@ A **layered architecture** (Controllers/Resources -> Services -> Repositories/En
 - **Integration Tests (@QuarkusTest)**: For testing API endpoints (REST using RestAssured, gRPC), service interactions, and database operations within the Quarkus environment. Dev Services for databases and message brokers will be utilized to simplify test setup.
 
 ## Key Libraries/Patterns (Initial Choices)
-- `quarkus-resteasy-reactive-jackson`: For reactive REST APIs with JSON.
+- `quarkus-rest-jackson` (with `quarkus-rest`): For REST APIs with JSON using RESTEasy Classic.
 - `quarkus-grpc`: For gRPC services.
+- `quarkus-smallrye-openapi`: For generating OpenAPI documentation from JAX-RS annotations.
 - `quarkus-oidc` / `quarkus-smallrye-jwt`: For OAuth2/OIDC authentication and JWT handling.
 - `quarkus-hibernate-orm-panache`: For simplified JPA.
 - `quarkus-jdbc-postgresql`: For PostgreSQL connectivity.

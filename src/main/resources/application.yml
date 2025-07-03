@@ -46,10 +46,15 @@ quarkus:
   custom:
     feature:
       enabled: true
+  quarkus:
+    http:
+      port: 8080
 
 # --- SIT Profile ---
 "%sit":
   quarkus:
+    http:
+      port: 8081
     log:
       level: INFO
     datasource:
@@ -63,10 +68,15 @@ quarkus:
   custom:
     feature:
       enabled: true
+  quarkus:
+    http:
+      port: 8081 # Assuming SIT was meant to be 8081, PRE-PROD 8082
 
 # --- PRE-PROD Profile ---
 "%pre-prod":
   quarkus:
+    http:
+      port: 8082
     log:
       level: WARN
     datasource:
@@ -80,10 +90,15 @@ quarkus:
   custom:
     feature:
       enabled: false
+  quarkus:
+    http:
+      port: 8082 # PRE-PROD port
 
 # --- PROD Profile ---
 "%prod":
   quarkus:
+    http:
+      port: 8083 # PROD port
     log:
       level: ERROR
     # Production datasource should use Vault or environment variables for credentials
