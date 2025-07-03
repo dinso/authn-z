@@ -81,14 +81,14 @@ CREATE INDEX idx_role_permission_assignments_permission_id ON role_permission_as
 -- Seed some global permissions (examples)
 -- These UUIDs are placeholders; in a real system, they might be predefined constants or generated consistently.
 INSERT INTO permissions (id, name, description, created_at, updated_at) VALUES
-    (gen_random_uuid(), 'tenant:manage_settings', 'Manage tenant-level settings', NOW(), NOW()),
-    (gen_random_uuid(), 'user:create', 'Create users within the tenant', NOW(), NOW()),
-    (gen_random_uuid(), 'user:read', 'Read user information within the tenant', NOW(), NOW()),
-    (gen_random_uuid(), 'user:update', 'Update users within the tenant', NOW(), NOW()),
-    (gen_random_uuid(), 'user:delete', 'Delete users within the tenant', NOW(), NOW()),
-    (gen_random_uuid(), 'user:manage_roles', 'Assign/unassign roles to users', NOW(), NOW()),
-    (gen_random_uuid(), 'role:create', 'Create roles within the tenant', NOW(), NOW()),
-    (gen_random_uuid(), 'role:read', 'Read roles within the tenant', NOW(), NOW()),
-    (gen_random_uuid(), 'role:update', 'Update roles within the tenant', NOW(), NOW()),
-    (gen_random_uuid(), 'role:delete', 'Delete roles within the tenant', NOW(), NOW()),
-    (gen_random_uuid(), 'role:manage_permissions', 'Assign/unassign permissions to roles', NOW(), NOW());
+    (RANDOM_UUID(), 'tenant:manage_settings', 'Manage tenant-level settings', NOW(), NOW()),
+    (RANDOM_UUID(), 'user:create', 'Create users within the tenant', NOW(), NOW()),
+    (RANDOM_UUID(), 'user:read', 'Read user information within the tenant', NOW(), NOW()),
+    (RANDOM_UUID(), 'user:update', 'Update users within the tenant', NOW(), NOW()),
+    (RANDOM_UUID(), 'user:delete', 'Delete users within the tenant', NOW(), NOW()),
+    (RANDOM_UUID(), 'user:manage_roles', 'Assign/unassign roles to users', NOW(), NOW()),
+    (RANDOM_UUID(), 'role:create', 'Create roles within the tenant', NOW(), NOW()),
+    (RANDOM_UUID(), 'role:read', 'Read roles within the tenant', NOW(), NOW()),
+    (RANDOM_UUID(), 'role:update', 'Update roles within the tenant', NOW(), NOW()),
+    (RANDOM_UUID(), 'role:delete', 'Delete roles within the tenant', NOW(), NOW()),
+    (RANDOM_UUID(), 'role:manage_permissions', 'Assign/unassign permissions to roles', NOW(), NOW());
