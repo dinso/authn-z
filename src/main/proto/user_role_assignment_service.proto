@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package org.example.multi_tenant_app.grpc.user_role;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+// Import RoleMessage if we return full role details, or define a simpler one.
+// For now, let's assume RoleServiceProto.RoleMessage can be used if needed,
+// or we can return a list of Role IDs or simplified Role info.
+// For GetRolesForUser, we'll return a list of simplified Role info.
+import "role_service.proto"; // Assuming role_service.proto contains RoleMessage
+
+option java_package = "org.example.multi_tenant_app.grpc.user_role";
+option java_outer_classname = "UserRoleAssignmentServiceProto";
+option java_multiple_files = true;
+
+// User Role Assignment Service definition
+service UserRoleAssignmentGrpcService {
+  rpc AssignRoleToUser (AssignRoleToUserRequest) returns (UserRoleAssignmentResponse);
+  rpc RemoveRoleFromUser (RemoveRoleFromUserRequest) returns (google.protobuf.Empty);
+  rpc GetRolesForUser (GetRolesForUserRequest) returns (UserRolesListResponse);
+}
+
+message UserRoleAssignmentMessage {
+  string id = 1;          // UUID of the assignment record
+  string tenant_id = 2;   // UUID
+  string user_account_id = 3; // UUID
+  string role_id = 4;       // UUID
+  google.protobuf.Timestamp assigned_at = 5;
+}
+
+message AssignRoleToUserRequest {
+  string tenant_id = 1;       // UUID
+  string user_account_id = 2; // UUID
+  string role_id = 3;           // UUID
+}
+
+message UserRoleAssignmentResponse {
+    UserRoleAssignmentMessage assignment = 1;
+}
+
+message RemoveRoleFromUserRequest {
+  string tenant_id = 1;       // UUID
+  string user_account_id = 2; // UUID
+  string role_id = 3;           // UUID
+}
+
+message GetRolesForUserRequest {
+  string tenant_id = 1;       // UUID
+  string user_account_id = 2; // UUID
+}
+
+// Re-using RoleMessage from role_service.proto for the response
+message UserRolesListResponse {
+  repeated org.example.multi_tenant_app.grpc.role.RoleMessage roles = 1;
+}

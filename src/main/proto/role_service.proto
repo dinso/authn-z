@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package org.example.multi_tenant_app.grpc.role;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option java_package = "org.example.multi_tenant_app.grpc.role";
+option java_outer_classname = "RoleServiceProto";
+option java_multiple_files = true;
+
+// Role Service definition
+service RoleGrpcService {
+  rpc CreateRole (CreateRoleRequest) returns (RoleResponse);
+  rpc GetRole (GetRoleRequest) returns (RoleResponse);
+  rpc GetRolesForTenant (GetRolesForTenantRequest) returns (RoleListResponse);
+  rpc UpdateRole (UpdateRoleRequest) returns (RoleResponse);
+  rpc DeleteRole (DeleteRoleRequest) returns (google.protobuf.Empty);
+}
+
+message RoleMessage {
+  string id = 1; // UUID as string
+  string tenant_id = 2; // UUID as string
+  string name = 3;
+  string description = 4;
+  bool is_system_role = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message CreateRoleRequest {
+  string tenant_id = 1; // UUID as string
+  string name = 2;
+  string description = 3;
+  // is_system_role is typically not set by clients directly for new roles
+}
+
+message RoleResponse {
+  RoleMessage role = 1;
+}
+
+message GetRoleRequest {
+  string tenant_id = 1; // UUID as string
+  string role_id = 2;   // UUID as string
+}
+
+message GetRolesForTenantRequest {
+  string tenant_id = 1; // UUID as string
+  // Add pagination fields if needed: int32 page_number = 2; int32 page_size = 3;
+}
+
+message RoleListResponse {
+  repeated RoleMessage roles = 1;
+}
+
+message UpdateRoleRequest {
+  string tenant_id = 1; // UUID as string
+  string role_id = 2;   // UUID as string
+  string name = 3;
+  string description = 4;
+  // tenant_id and is_system_role are generally not updatable via this request
+}
+
+message DeleteRoleRequest {
+  string tenant_id = 1; // UUID as string
+  string role_id = 2;   // UUID as string
+}
