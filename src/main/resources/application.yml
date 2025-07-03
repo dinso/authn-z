@@ -1,0 +1,107 @@
+# Default properties (can be overridden by profiles)
+quarkus:
+  application:
+    name: multi-tenant-app
+    version: 1.0.0-SNAPSHOT
+
+  # Default Datasource (PostgreSQL) - to be overridden by profiles
+  datasource:
+    db-kind: postgresql
+    username: default_user
+    password: default_password
+    jdbc:
+      url: jdbc:postgresql://localhost:5432/default_db
+  flyway:
+    migrate-at-start: true # Enable for dev/testing, consider for prod
+
+  # Default OIDC settings for a single, primary tenant or as a fallback.
+  # Multi-tenant OIDC will require further configuration (e.g., tenant resolver).
+  oidc:
+    auth-server-url: https://default-auth-server.com/realms/default_realm
+    client-id: default_client_id
+    # credentials:
+    #   secret: your_default_client_secret # Store securely, not in VCS for prod.
+    # Application type: service or web-app
+    application-type: service
+    # Token:
+    #   principal-claim: preferred_username # or sub, email etc.
+
+# --- DEV Profile ---
+"%dev":
+  quarkus:
+    log:
+      level: INFO
+      category:
+        "org.example.multi_tenant_app": DEBUG
+    datasource:
+      username: dev_user
+      password: dev_password
+      jdbc:
+        url: jdbc:postgresql://localhost:5432/dev_db
+    oidc:
+      auth-server-url: https://localhost:8443/realms/dev_realm # Example: Keycloak running locally for dev
+      client-id: quarkus_client_dev
+      # credentials:
+      #   secret: dev_secret
+  # Example custom property for dev
+  custom:
+    feature:
+      enabled: true
+
+# --- SIT Profile ---
+"%sit":
+  quarkus:
+    log:
+      level: INFO
+    datasource:
+      username: sit_user
+      # password: Use environment variables or Vault for SIT passwords (e.g., ${SIT_DB_PASSWORD})
+      jdbc:
+        url: jdbc:postgresql://sit-db-server:5432/sit_db
+    oidc:
+      auth-server-url: https://sit-auth-server.com/realms/sit_realm
+      client-id: sit_client_id
+  custom:
+    feature:
+      enabled: true
+
+# --- PRE-PROD Profile ---
+"%pre-prod":
+  quarkus:
+    log:
+      level: WARN
+    datasource:
+      username: preprod_user
+      # password: Use environment variables or Vault
+      jdbc:
+        url: jdbc:postgresql://preprod-db-server:5432/preprod_db
+    oidc:
+      auth-server-url: https://preprod-auth-server.com/realms/preprod_realm
+      client-id: preprod_client_id
+  custom:
+    feature:
+      enabled: false
+
+# --- PROD Profile ---
+"%prod":
+  quarkus:
+    log:
+      level: ERROR
+    # Production datasource should use Vault or environment variables for credentials
+    datasource:
+      username: prod_user
+      # password: ${PROD_DB_PASSWORD}
+      jdbc:
+        url: jdbc:postgresql://prod-db-server:5432/prod_db
+    flyway:
+      migrate-at-start: false # Typically false for prod, migrations handled manually/controlled.
+    oidc:
+      auth-server-url: https://prod-auth-server.com/realms/prod_realm
+      client-id: prod_client_id
+  custom:
+    feature:
+      enabled: false
+
+# Common application greeting (example)
+greeting:
+  message: "hello from multi-tenant-app"

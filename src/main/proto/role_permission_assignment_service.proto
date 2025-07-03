@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package org.example.multi_tenant_app.grpc.role_permission;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+// Import PermissionMessage if we return full permission details.
+// For now, define a simplified one or assume one exists if complex.
+// For GetPermissionsForRole, we'll return a list of simplified Permission info.
+
+option java_package = "org.example.multi_tenant_app.grpc.role_permission";
+option java_outer_classname = "RolePermissionAssignmentServiceProto";
+option java_multiple_files = true;
+
+// Simplified Permission Message for responses (can be expanded or imported if a full one exists)
+message PermissionInfoMessage {
+  string id = 1; // UUID as string
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+
+// Role Permission Assignment Service definition
+service RolePermissionAssignmentGrpcService {
+  rpc AssignPermissionToRole (AssignPermissionToRoleRequest) returns (RolePermissionAssignmentResponse);
+  rpc RemovePermissionFromRole (RemovePermissionFromRoleRequest) returns (google.protobuf.Empty);
+  rpc GetPermissionsForRole (GetPermissionsForRoleRequest) returns (PermissionListResponse);
+  rpc GetAllGlobalPermissions (google.protobuf.Empty) returns (PermissionListResponse); // New RPC
+}
+
+message RolePermissionAssignmentMessage {
+  string id = 1;          // UUID of the assignment record
+  string tenant_id = 2;   // UUID
+  string role_id = 3;       // UUID
+  string permission_id = 4; // UUID
+  google.protobuf.Timestamp assigned_at = 5;
+}
+
+message AssignPermissionToRoleRequest {
+  string tenant_id = 1;     // UUID
+  string role_id = 2;         // UUID
+  string permission_id = 3;   // UUID
+}
+
+message RolePermissionAssignmentResponse {
+    RolePermissionAssignmentMessage assignment = 1;
+}
+
+message RemovePermissionFromRoleRequest {
+  string tenant_id = 1;     // UUID
+  string role_id = 2;         // UUID
+  string permission_id = 3;   // UUID
+}
+
+message GetPermissionsForRoleRequest {
+  string tenant_id = 1;     // UUID
+  string role_id = 2;         // UUID
+}
+
+message PermissionListResponse {
+  repeated PermissionInfoMessage permissions = 1;
+}
